@@ -5,6 +5,7 @@ import com.epam.franquicias.domain.model.Franquicia;
 import com.epam.franquicias.infrastructure.adapter.out.persistence.entity.FranquiciaEntity;
 import com.epam.franquicias.infrastructure.adapter.out.persistence.mapper.FranquiciaEntityMapper;
 import java.util.UUID;
+import org.springframework.beans.factory.annotation.Qualifier;
 import reactor.core.publisher.Mono;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbAsyncTable;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedAsyncClient;
@@ -17,7 +18,8 @@ public class DynamoFranquiciaRepositoryAdapter implements FranquiciaRepositoryPo
 
     private final DynamoDbAsyncTable<FranquiciaEntity> franquiciaTable;
 
-    public DynamoFranquiciaRepositoryAdapter(DynamoDbEnhancedAsyncClient enhancedClient, String tableName) {
+    public DynamoFranquiciaRepositoryAdapter(DynamoDbEnhancedAsyncClient enhancedClient,
+            @Qualifier("tableName") String tableName) {
         this.franquiciaTable = enhancedClient.table(tableName, TableSchema.fromBean(FranquiciaEntity.class));
     }
 
