@@ -1,0 +1,7 @@
+aws:
+  region: us-east-1
+  dynamodb:
+    table-name: franquicias
+
+server:
+  port: 8080
