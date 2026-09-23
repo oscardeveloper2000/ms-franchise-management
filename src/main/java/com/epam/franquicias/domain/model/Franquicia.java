@@ -1,7 +1,6 @@
 package com.epam.franquicias.domain.model;
 
 import com.epam.franquicias.domain.exception.DomainValidationException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -34,6 +33,11 @@ public class Franquicia {
 
     public String getNombre() {
         return nombre;
+    }
+
+    public void actualizarNombre(String nuevoNombre) {
+        validarNombre(nuevoNombre);
+        this.nombre = nuevoNombre;
     }
 
     public void setNombre(String nombre) {
