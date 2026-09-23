@@ -34,6 +34,11 @@ public class Producto {
         return nombre;
     }
 
+    public void actualizarNombre(String nuevoNombre) {
+        validarNombre(nuevoNombre);
+        this.nombre = nuevoNombre;
+    }
+
     public void setNombre(String nombre) {
         this.nombre = nombre;
     }
