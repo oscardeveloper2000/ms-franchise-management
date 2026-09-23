@@ -11,12 +11,9 @@ public class Producto {
 
     public Producto(UUID id, String nombre, int cantidadStock) {
         validarNombre(nombre);
-        if (cantidadStock < 0) {
-            throw new DomainValidationException("La cantidad de stock no puede ser negativa");
-        }
         this.id = id;
         this.nombre = nombre;
-        this.cantidadStock = cantidadStock;
+        actualizarStock(cantidadStock);
     }
 
     private void validarNombre(String nombre) {
@@ -43,6 +40,13 @@ public class Producto {
 
     public int getCantidadStock() {
         return cantidadStock;
+    }
+
+    public void actualizarStock(int nuevaCantidadStock) {
+        if (nuevaCantidadStock < 0) {
+            throw new DomainValidationException("La cantidad de stock no puede ser negativa");
+        }
+        this.cantidadStock = nuevaCantidadStock;
     }
 
     public void setCantidadStock(int cantidadStock) {
