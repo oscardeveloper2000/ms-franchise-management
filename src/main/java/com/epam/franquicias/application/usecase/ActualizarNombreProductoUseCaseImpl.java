@@ -1,0 +1,42 @@
+package com.epam.franquicias.application.usecase;
+
+import com.epam.franquicias.application.exception.FranquiciaNoEncontradaException;
+import com.epam.franquicias.application.exception.ProductoNoEncontradoException;
+import com.epam.franquicias.application.exception.SucursalNoEncontradaException;
+import com.epam.franquicias.application.port.in.ActualizarNombreProductoUseCase;
+import com.epam.franquicias.application.port.out.FranquiciaRepositoryPort;
+import com.epam.franquicias.domain.model.Franquicia;
+import com.epam.franquicias.domain.model.Producto;
+import com.epam.franquicias.domain.model.Sucursal;
+import java.util.Objects;
+import java.util.UUID;
+import reactor.core.publisher.Mono;
+
+public class ActualizarNombreProductoUseCaseImpl implements ActualizarNombreProductoUseCase {
+
+    private final FranquiciaRepositoryPort franquiciaRepository;
+
+    public ActualizarNombreProductoUseCaseImpl(FranquiciaRepositoryPort franquiciaRepository) {
+        this.franquiciaRepository = franquiciaRepository;
+    }
+
+    @Override
+    public Mono<Franquicia> ejecutar(UUID franquiciaId, UUID sucursalId, UUID productoId, String nuevoNombre) {
+        return franquiciaRepository.buscarPorId(franquiciaId)
+                .switchIfEmpty(Mono.error(() -> new FranquiciaNoEncontradaException(franquiciaId)))
+                .flatMap(franquicia -> {
+                    Sucursal sucursal = franquicia.getSucursales().stream()
+                            .filter(sucursalEncontrada -> Objects.equals(sucursalEncontrada.getId(), sucursalId))
+                            .findFirst()
+                            .orElseThrow(() -> new SucursalNoEncontradaException(sucursalId));
+
+                    Producto producto = sucursal.getProductos().stream()
+                            .filter(productoEncontrado -> Objects.equals(productoEncontrado.getId(), productoId))
+                            .findFirst()
+                            .orElseThrow(() -> new ProductoNoEncontradoException(productoId));
+
+                    producto.actualizarNombre(nuevoNombre);
+                    return franquiciaRepository.guardar(franquicia);
+                });
+    }
+}
