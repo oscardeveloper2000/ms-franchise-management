@@ -1,0 +1,387 @@
+{
+  "info": {
+    "_postman_id": "f2d70d39-6f2b-4a8e-8a34-3c6d0db79d8f",
+    "name": "Microservicio de Franquicias API",
+    "description": "Coleccion para probar el microservicio de franquicias. Ejecuta las solicitudes en el orden indicado para encadenar automaticamente franquiciaId, sucursalId y productoId.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://fr-a89cac9a598c4d28bab5ed712e7978fe.ecs.us-east-1.on.aws",
+      "type": "string"
+    },
+    {
+      "key": "franquiciaId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "sucursalId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "productoId",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Health check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/health",
+            "description": "Verifica que el servicio esta disponible sin depender de DynamoDB."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Estado UP', function () {",
+                  "    pm.expect(pm.response.json().status).to.eql('UP');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Franquicia",
+      "item": [
+        {
+          "name": "Crear franquicia",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Franquicia Postman\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/franquicias",
+            "description": "Crea una franquicia y guarda su ID en la variable de coleccion franquiciaId."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "const body = pm.response.json();",
+                  "pm.expect(body.id).to.be.a('string');",
+                  "pm.collectionVariables.set('franquiciaId', body.id);",
+                  "console.log('franquiciaId:', body.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Actualizar nombre de franquicia",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Franquicia Postman Actualizada\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/franquicias/{{franquiciaId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Sucursales",
+      "item": [
+        {
+          "name": "Agregar sucursal",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Sucursal Norte\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/franquicias/{{franquiciaId}}/sucursales",
+            "description": "Agrega una sucursal y guarda el ultimo sucursalId devuelto."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "const body = pm.response.json();",
+                  "const sucursales = body.sucursales || [];",
+                  "pm.expect(sucursales.length).to.be.greaterThan(0);",
+                  "const sucursal = sucursales[sucursales.length - 1];",
+                  "pm.collectionVariables.set('sucursalId', sucursal.id);",
+                  "console.log('sucursalId:', sucursal.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Actualizar nombre de sucursal",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Sucursal Norte Actualizada\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/franquicias/{{franquiciaId}}/sucursales/{{sucursalId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Productos",
+      "item": [
+        {
+          "name": "Agregar producto",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Producto Postman\",\n  \"cantidadStock\": 100\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/franquicias/{{franquiciaId}}/sucursales/{{sucursalId}}/productos",
+            "description": "Agrega un producto y guarda el ultimo productoId devuelto."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "const body = pm.response.json();",
+                  "const sucursal = (body.sucursales || []).find(function (item) { return item.id === pm.collectionVariables.get('sucursalId'); });",
+                  "pm.expect(sucursal, 'Sucursal en respuesta').to.exist;",
+                  "pm.expect(sucursal.productos.length).to.be.greaterThan(0);",
+                  "const producto = sucursal.productos[sucursal.productos.length - 1];",
+                  "pm.collectionVariables.set('productoId', producto.id);",
+                  "console.log('productoId:', producto.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Actualizar nombre de producto",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Producto Postman Actualizado\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/franquicias/{{franquiciaId}}/sucursales/{{sucursalId}}/productos/{{productoId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Modificar stock de producto",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cantidadStock\": 75\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/franquicias/{{franquiciaId}}/sucursales/{{sucursalId}}/productos/{{productoId}}/stock"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Obtener producto con mas stock por sucursal",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/franquicias/{{franquiciaId}}/productos/top-stock"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Respuesta como lista', function () {",
+                  "    pm.expect(pm.response.json()).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Eliminar producto",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/franquicias/{{franquiciaId}}/sucursales/{{sucursalId}}/productos/{{productoId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
