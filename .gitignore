@@ -1,0 +1,33 @@
+# Maven build output
+target/
+
+# IDE files
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+
+# Operating system files
+.DS_Store
+Thumbs.db
+
+# Terraform working directory and state
+infra/terraform/.terraform/
+infra/terraform/*.tfstate
+infra/terraform/*.tfstate.*
+infra/terraform/*.tfvars
+!infra/terraform/*.tfvars.example
+
+# Credentials and secrets
+.env
+*.pem
+*.key
+credentials.json
+
+# Logs
+*.log
+
+# Local coding-agent instructions
+.github/copilot-instructions.md
+AGENTS.md
