@@ -23,10 +23,10 @@
 
 ```
 infra/terraform/
-├── main.tf          # Provider AWS, backend de state
+├── main.tf          # Provider AWS (línea 6.x, requerida por ECS Express Mode), backend de state
 ├── dynamodb.tf       # Definición de la tabla y sus índices
 ├── ecr.tf            # Repositorio ECR para la imagen Docker
-├── apprunner.tf      # Servicio App Runner (cómputo)
+├── ecs-express.tf    # Roles IAM (execution, infrastructure, task) + servicio ECS Express Mode
 ├── variables.tf
 └── outputs.tf
 ```
@@ -34,5 +34,6 @@ infra/terraform/
 ## Notas para el agente
 
 - Antes de generar código de un caso de uso nuevo, revisa primero si ya existe un puerto similar en `application/port` para no duplicar contratos.
-- El servicio de cómputo para el despliegue es AWS App Runner (ya decidido). El Terraform de despliegue debe incluir el recurso de App Runner apuntando a la imagen Docker publicada (ej. en ECR).
+- El servicio de cómputo para el despliegue es Amazon ECS Express Mode (ya decidido; App Runner dejó de aceptar clientes nuevos desde el 30 de abril de 2026). El Terraform de despliegue debe incluir el recurso `aws_ecs_express_gateway_service` apuntando a la imagen Docker publicada en ECR, con los tres roles IAM correspondientes (execution, infrastructure, task).
+- El endpoint `GET /health` es obligatorio y no debe eliminarse ni modificarse para depender de servicios externos — el health check del Application Load Balancer de ECS Express Mode depende de que responda 200 de forma consistente.
 - Mantén el `README.md` actualizado con los pasos para levantar el proyecto localmente, tal como pide el enunciado de la prueba técnica.

@@ -15,7 +15,9 @@ API para administrar franquicias. Jerarquía del dominio:
 - Persistencia: **DynamoDB**, usando `DynamoDbAsyncClient` (AWS SDK v2), envuelto en `Mono`/`Flux` con `Mono.fromFuture(...)`. Nunca usar el cliente síncrono.
 - Docker para empaquetar la aplicación.
 - Terraform para aprovisionar la tabla de DynamoDB (y cualquier otro recurso de AWS necesario).
-- Despliegue final en AWS mediante **App Runner** (`aws_apprunner_service` en Terraform), a partir de la imagen Docker de la aplicación. No usar ECS ni Lambda.
+- Despliegue final en AWS mediante **Amazon ECS Express Mode** (`aws_ecs_express_gateway_service` en Terraform), a partir de la imagen Docker de la aplicación. No usar App Runner (dejó de aceptar clientes nuevos desde el 30 de abril de 2026) ni Lambda.
+- El servicio requiere tres roles IAM distintos: `execution_role` (principal `ecs-tasks.amazonaws.com`, policy `AmazonECSTaskExecutionRolePolicy`, para pull de ECR y logs), `infrastructure_role` (principal `ecs.amazonaws.com`, policy `AmazonECSInfrastructureRoleforExpressGatewayServices`, para gestionar el ALB/target groups/auto-scaling), y `task_role` (principal `ecs-tasks.amazonaws.com`, con la policy custom de acceso a DynamoDB, para que la aplicación en ejecución tenga permisos sobre la tabla).
+- El servicio valida salud vía HTTP a través de un Application Load Balancer (`health_check_path`), a diferencia de App Runner que solo validaba TCP. Por eso existe el endpoint `GET /health`, que debe mantenerse siempre disponible y respondiendo 200 sin dependencias externas (no debe consultar DynamoDB ni ningún otro servicio).
 
 ## Arquitectura: Hexagonal (puertos y adaptadores)
 
@@ -47,6 +49,7 @@ src/main/java/com/<empresa>/franquicias/
 
 | Método | Ruta (sugerida) | Descripción |
 |---|---|---|
+| GET | `/health` | Health check del servicio, usado por el Application Load Balancer de ECS Express Mode. Debe responder 200 sin depender de DynamoDB ni ningún otro servicio externo. |
 | POST | `/franquicias` | Crear franquicia |
 | POST | `/franquicias/{franquiciaId}/sucursales` | Agregar sucursal a una franquicia |
 | POST | `/franquicias/{franquiciaId}/sucursales/{sucursalId}/productos` | Agregar producto a una sucursal |
