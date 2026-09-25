@@ -59,7 +59,7 @@ infra/terraform/             # Infraestructura como código (DynamoDB, ECR, ECS 
 
 ## Endpoints
 
-Base URL local: `http://localhost:8080`
+Base URL AWS: `https://fr-a89cac9a598c4d28bab5ed712e7978fe.ecs.us-east-1.on.aws`
 
 | Método | Ruta                                                                               | Descripción                                               |
 | ------ | ---------------------------------------------------------------------------------- | --------------------------------------------------------- |
