@@ -76,12 +76,12 @@ Base URL local: `http://localhost:8080`
 
 ### Ejemplos de uso (curl)
 
-Reemplaza `http://localhost:8080` por la URL pública del servicio si estás probando contra el ambiente desplegado en AWS. Los valores `{franquiciaId}`, `{sucursalId}` y `{productoId}` deben reemplazarse por los UUID reales devueltos en cada respuesta anterior.
+Los siguientes ejemplos apuntan al servicio desplegado en Amazon ECS Express Mode. Los valores `{franquiciaId}`, `{sucursalId}` y `{productoId}` deben reemplazarse por los UUID reales devueltos en cada respuesta anterior.
 
 **1. Crear una franquicia**
 
 ```bash
-curl -X POST http://localhost:8080/franquicias \
+curl -X POST https://fr-a89cac9a598c4d28bab5ed712e7978fe.ecs.us-east-1.on.aws/franquicias \
   -H "Content-Type: application/json" \
   -d '{"nombre": "Mi Franquicia"}'
 ```
@@ -89,7 +89,7 @@ curl -X POST http://localhost:8080/franquicias \
 **2. Actualizar el nombre de una franquicia**
 
 ```bash
-curl -X PATCH http://localhost:8080/franquicias/{franquiciaId} \
+curl -X PATCH https://fr-a89cac9a598c4d28bab5ed712e7978fe.ecs.us-east-1.on.aws/franquicias/{franquiciaId} \
   -H "Content-Type: application/json" \
   -d '{"nombre": "Mi Franquicia Renombrada"}'
 ```
@@ -97,7 +97,7 @@ curl -X PATCH http://localhost:8080/franquicias/{franquiciaId} \
 **3. Agregar una sucursal a una franquicia**
 
 ```bash
-curl -X POST http://localhost:8080/franquicias/{franquiciaId}/sucursales \
+curl -X POST https://fr-a89cac9a598c4d28bab5ed712e7978fe.ecs.us-east-1.on.aws/franquicias/{franquiciaId}/sucursales \
   -H "Content-Type: application/json" \
   -d '{"nombre": "Sucursal Norte"}'
 ```
@@ -105,7 +105,7 @@ curl -X POST http://localhost:8080/franquicias/{franquiciaId}/sucursales \
 **4. Actualizar el nombre de una sucursal**
 
 ```bash
-curl -X PATCH http://localhost:8080/franquicias/{franquiciaId}/sucursales/{sucursalId} \
+curl -X PATCH https://fr-a89cac9a598c4d28bab5ed712e7978fe.ecs.us-east-1.on.aws/franquicias/{franquiciaId}/sucursales/{sucursalId} \
   -H "Content-Type: application/json" \
   -d '{"nombre": "Sucursal Norte Renombrada"}'
 ```
@@ -113,7 +113,7 @@ curl -X PATCH http://localhost:8080/franquicias/{franquiciaId}/sucursales/{sucur
 **5. Agregar un producto a una sucursal**
 
 ```bash
-curl -X POST http://localhost:8080/franquicias/{franquiciaId}/sucursales/{sucursalId}/productos \
+curl -X POST https://fr-a89cac9a598c4d28bab5ed712e7978fe.ecs.us-east-1.on.aws/franquicias/{franquiciaId}/sucursales/{sucursalId}/productos \
   -H "Content-Type: application/json" \
   -d '{"nombre": "Coca-Cola 500ml", "cantidadStock": 100}'
 ```
@@ -121,7 +121,7 @@ curl -X POST http://localhost:8080/franquicias/{franquiciaId}/sucursales/{sucurs
 **6. Actualizar el nombre de un producto**
 
 ```bash
-curl -X PATCH http://localhost:8080/franquicias/{franquiciaId}/sucursales/{sucursalId}/productos/{productoId} \
+curl -X PATCH https://fr-a89cac9a598c4d28bab5ed712e7978fe.ecs.us-east-1.on.aws/franquicias/{franquiciaId}/sucursales/{sucursalId}/productos/{productoId} \
   -H "Content-Type: application/json" \
   -d '{"nombre": "Coca-Cola 600ml"}'
 ```
@@ -129,7 +129,7 @@ curl -X PATCH http://localhost:8080/franquicias/{franquiciaId}/sucursales/{sucur
 **7. Modificar el stock de un producto**
 
 ```bash
-curl -X PATCH http://localhost:8080/franquicias/{franquiciaId}/sucursales/{sucursalId}/productos/{productoId}/stock \
+curl -X PATCH https://fr-a89cac9a598c4d28bab5ed712e7978fe.ecs.us-east-1.on.aws/franquicias/{franquiciaId}/sucursales/{sucursalId}/productos/{productoId}/stock \
   -H "Content-Type: application/json" \
   -d '{"cantidadStock": 75}'
 ```
@@ -137,19 +137,19 @@ curl -X PATCH http://localhost:8080/franquicias/{franquiciaId}/sucursales/{sucur
 **8. Eliminar un producto de una sucursal**
 
 ```bash
-curl -X DELETE http://localhost:8080/franquicias/{franquiciaId}/sucursales/{sucursalId}/productos/{productoId}
+curl -X DELETE https://fr-a89cac9a598c4d28bab5ed712e7978fe.ecs.us-east-1.on.aws/franquicias/{franquiciaId}/sucursales/{sucursalId}/productos/{productoId}
 ```
 
 **9. Obtener el producto con más stock por sucursal**
 
 ```bash
-curl http://localhost:8080/franquicias/{franquiciaId}/productos/top-stock
+curl https://fr-a89cac9a598c4d28bab5ed712e7978fe.ecs.us-east-1.on.aws/franquicias/{franquiciaId}/productos/top-stock
 ```
 
 **Health check**
 
 ```bash
-curl http://localhost:8080/health
+curl https://fr-a89cac9a598c4d28bab5ed712e7978fe.ecs.us-east-1.on.aws/health
 ```
 
 ## Probar con Postman
