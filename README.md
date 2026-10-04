@@ -306,6 +306,22 @@ La infraestructura completa se gestiona con Terraform, ubicada en `infra/terrafo
    curl https://<host-publico>/health
    ```
 
+### Destruir y reconstruir ECS Express Mode
+
+Para eliminar únicamente el servicio ECS Express Mode y el security group de la aplicación:
+
+```bash
+cd infra/terraform
+terraform destroy -target=aws_ecs_express_gateway_service.app -target=aws_security_group.app
+```
+
+Para volver a construirlos cuando sea necesario, ejecuta nuevamente `terraform apply` desde el mismo directorio:
+
+```bash
+cd infra/terraform
+terraform apply
+```
+
 ### Destruir la infraestructura
 
 ```bash
