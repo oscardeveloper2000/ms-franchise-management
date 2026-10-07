@@ -3,7 +3,4 @@ output "ecr_repository_url" {
   value       = aws_ecr_repository.app.repository_url
 }
 
-output "ecs_express_service_url" {
-  description = "Rutas de ingreso del servicio ECS Express Gateway."
-  value       = aws_ecs_express_gateway_service.app.ingress_paths
-}
+# La IP pública de la tarea se obtiene con un script aparte, no con un output de Terraform.

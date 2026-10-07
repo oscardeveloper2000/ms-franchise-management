@@ -8,7 +8,7 @@
   "variable": [
     {
       "key": "baseUrl",
-      "value": "https://fr-a89cac9a598c4d28bab5ed712e7978fe.ecs.us-east-1.on.aws",
+      "value": "http://18.232.53.87:8080",
       "type": "string"
     },
     {

@@ -11,7 +11,7 @@ data "aws_subnets" "default_vpc" {
 
 resource "aws_security_group" "app" {
   name        = "${var.app_name}-ecs"
-  description = "Security group for the ECS Express application"
+  description = "Security group for the ECS Fargate application"
   vpc_id      = data.aws_vpc.default.id
 
   ingress {
@@ -34,6 +34,15 @@ resource "aws_security_group" "app" {
     Name = "${var.app_name}-ecs"
     App  = var.app_name
   }
+}
+
+resource "aws_ecs_cluster" "app" {
+  name = var.app_name
+}
+
+resource "aws_cloudwatch_log_group" "app" {
+  name              = "/ecs/${var.app_name}"
+  retention_in_days = 7
 }
 
 data "aws_iam_policy_document" "ecs_execution_assume_role" {
@@ -60,32 +69,6 @@ resource "aws_iam_role" "execution_role" {
 resource "aws_iam_role_policy_attachment" "execution_role" {
   role       = aws_iam_role.execution_role.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
-}
-
-data "aws_iam_policy_document" "ecs_infrastructure_assume_role" {
-  statement {
-    actions = ["sts:AssumeRole"]
-
-    principals {
-      type        = "Service"
-      identifiers = ["ecs.amazonaws.com"]
-    }
-  }
-}
-
-resource "aws_iam_role" "infrastructure_role" {
-  name               = "${var.app_name}-infrastructure-role"
-  assume_role_policy = data.aws_iam_policy_document.ecs_infrastructure_assume_role.json
-
-  tags = {
-    Name = "${var.app_name}-infrastructure-role"
-    App  = var.app_name
-  }
-}
-
-resource "aws_iam_role_policy_attachment" "infrastructure_role" {
-  role       = aws_iam_role.infrastructure_role.name
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSInfrastructureRoleforExpressGatewayServices"
 }
 
 data "aws_iam_policy_document" "ecs_task_assume_role" {
@@ -132,32 +115,62 @@ resource "aws_iam_role_policy_attachment" "task_role_dynamodb_access" {
   policy_arn = aws_iam_policy.dynamodb_access.arn
 }
 
-resource "aws_ecs_express_gateway_service" "app" {
-  service_name            = var.app_name
-  execution_role_arn      = aws_iam_role.execution_role.arn
-  infrastructure_role_arn = aws_iam_role.infrastructure_role.arn
-  task_role_arn           = aws_iam_role.task_role.arn
-  health_check_path       = "/health"
-  cpu                     = "256"
-  memory                  = "512"
+resource "aws_ecs_task_definition" "app" {
+  family                   = var.app_name
+  network_mode             = "awsvpc"
+  requires_compatibilities = ["FARGATE"]
+  cpu                      = "256"
+  memory                   = "512"
+  execution_role_arn       = aws_iam_role.execution_role.arn
+  task_role_arn            = aws_iam_role.task_role.arn
 
-  network_configuration = [{
-    security_groups = [aws_security_group.app.id]
-    subnets         = data.aws_subnets.default_vpc.ids
-  }]
+  container_definitions = jsonencode([
+    {
+      name      = var.app_name
+      image     = "${aws_ecr_repository.app.repository_url}:latest"
+      essential = true
 
-  primary_container {
-    image          = "${aws_ecr_repository.app.repository_url}:latest"
-    container_port = 8080
+      portMappings = [
+        {
+          containerPort = 8080
+          hostPort      = 8080
+          protocol      = "tcp"
+        }
+      ]
 
-    environment {
-      name  = "AWS_REGION"
-      value = var.aws_region
+      environment = [
+        {
+          name  = "AWS_REGION"
+          value = var.aws_region
+        },
+        {
+          name  = "AWS_DYNAMODB_TABLE_NAME"
+          value = var.dynamodb_table_name
+        }
+      ]
+
+      logConfiguration = {
+        logDriver = "awslogs"
+        options = {
+          "awslogs-group"         = aws_cloudwatch_log_group.app.name
+          "awslogs-region"        = var.aws_region
+          "awslogs-stream-prefix" = var.app_name
+        }
+      }
     }
+  ])
+}
 
-    environment {
-      name  = "AWS_DYNAMODB_TABLE_NAME"
-      value = var.dynamodb_table_name
-    }
+resource "aws_ecs_service" "app" {
+  name            = var.app_name
+  cluster         = aws_ecs_cluster.app.id
+  task_definition = aws_ecs_task_definition.app.arn
+  desired_count   = 1
+  launch_type     = "FARGATE"
+
+  network_configuration {
+    subnets          = data.aws_subnets.default_vpc.ids
+    security_groups  = [aws_security_group.app.id]
+    assign_public_ip = true
   }
 }

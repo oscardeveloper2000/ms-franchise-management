@@ -35,7 +35,7 @@ Una **franquicia es el aggregate root**: cada franquicia (con todas sus sucursal
 | Persistencia                | Amazon DynamoDB (AWS SDK v2, `DynamoDbEnhancedAsyncClient`)                               |
 | Contenedor                  | Docker (build multi-stage)                                                                |
 | Infraestructura como código | Terraform                                                                                 |
-| Cómputo en la nube          | Amazon ECS Express Mode                                                                   |
+| Cómputo en la nube          | Amazon ECS Fargate                                                                        |
 
 ## Estructura del proyecto
 
@@ -54,12 +54,12 @@ src/main/java/com/epam/franquicias/
     ├── adapter/out/persistence/  # Entidades DynamoDB, mapper, adaptador
     └── config/             # Configuración de Spring (beans de AWS y casos de uso)
 
-infra/terraform/             # Infraestructura como código (DynamoDB, ECR, ECS Express Mode)
+infra/terraform/             # Infraestructura como código (DynamoDB, ECR, ECS Fargate)
 ```
 
 ## Endpoints
 
-Base URL AWS: `https://fr-a89cac9a598c4d28bab5ed712e7978fe.ecs.us-east-1.on.aws`
+Base URL AWS: `http://18.232.53.87:8080`
 
 | Método | Ruta                                                                               | Descripción                                               |
 | ------ | ---------------------------------------------------------------------------------- | --------------------------------------------------------- |
@@ -71,17 +71,18 @@ Base URL AWS: `https://fr-a89cac9a598c4d28bab5ed712e7978fe.ecs.us-east-1.on.aws`
 | POST   | `/franquicias/{franquiciaId}/sucursales/{sucursalId}/productos`                    | Agregar producto a una sucursal                           |
 | PATCH  | `/franquicias/{franquiciaId}/sucursales/{sucursalId}/productos/{productoId}`       | Actualizar nombre de un producto                          |
 | PATCH  | `/franquicias/{franquiciaId}/sucursales/{sucursalId}/productos/{productoId}/stock` | Modificar el stock de un producto                         |
-| DELETE | `/franquicias/{franquiciaId}/sucursales/{sucursalId}/productos/{productoId}`       | Eliminar un producto de una sucursal                      |
 | GET    | `/franquicias/{franquiciaId}/productos/top-stock`                                  | Producto con más stock por cada sucursal de la franquicia |
 
 ### Ejemplos de uso (curl)
 
-Los siguientes ejemplos apuntan al servicio desplegado en Amazon ECS Express Mode. Los valores `{franquiciaId}`, `{sucursalId}` y `{productoId}` deben reemplazarse por los UUID reales devueltos en cada respuesta anterior.
+**Advertencia:** la IP pública cambia cada vez que la tarea de Fargate se reinicia. Para obtener la IP actual, ejecuta `./infra/terraform/get-task-ip.sh`; no asumas que `18.232.53.87` seguirá siendo válida indefinidamente.
+
+Los siguientes ejemplos apuntan al servicio desplegado en Amazon ECS Fargate. Sustituye los valores `{franquiciaId}`, `{sucursalId}` y `{productoId}` por los UUID reales devueltos en cada respuesta anterior.
 
 **1. Crear una franquicia**
 
 ```bash
-curl -X POST https://fr-a89cac9a598c4d28bab5ed712e7978fe.ecs.us-east-1.on.aws/franquicias \
+curl -X POST http://18.232.53.87:8080/franquicias \
   -H "Content-Type: application/json" \
   -d '{"nombre": "Mi Franquicia"}'
 ```
@@ -89,7 +90,7 @@ curl -X POST https://fr-a89cac9a598c4d28bab5ed712e7978fe.ecs.us-east-1.on.aws/fr
 **2. Actualizar el nombre de una franquicia**
 
 ```bash
-curl -X PATCH https://fr-a89cac9a598c4d28bab5ed712e7978fe.ecs.us-east-1.on.aws/franquicias/{franquiciaId} \
+curl -X PATCH http://18.232.53.87:8080/franquicias/{franquiciaId} \
   -H "Content-Type: application/json" \
   -d '{"nombre": "Mi Franquicia Renombrada"}'
 ```
@@ -97,7 +98,7 @@ curl -X PATCH https://fr-a89cac9a598c4d28bab5ed712e7978fe.ecs.us-east-1.on.aws/f
 **3. Agregar una sucursal a una franquicia**
 
 ```bash
-curl -X POST https://fr-a89cac9a598c4d28bab5ed712e7978fe.ecs.us-east-1.on.aws/franquicias/{franquiciaId}/sucursales \
+curl -X POST http://18.232.53.87:8080/franquicias/{franquiciaId}/sucursales \
   -H "Content-Type: application/json" \
   -d '{"nombre": "Sucursal Norte"}'
 ```
@@ -105,7 +106,7 @@ curl -X POST https://fr-a89cac9a598c4d28bab5ed712e7978fe.ecs.us-east-1.on.aws/fr
 **4. Actualizar el nombre de una sucursal**
 
 ```bash
-curl -X PATCH https://fr-a89cac9a598c4d28bab5ed712e7978fe.ecs.us-east-1.on.aws/franquicias/{franquiciaId}/sucursales/{sucursalId} \
+curl -X PATCH http://18.232.53.87:8080/franquicias/{franquiciaId}/sucursales/{sucursalId} \
   -H "Content-Type: application/json" \
   -d '{"nombre": "Sucursal Norte Renombrada"}'
 ```
@@ -113,7 +114,7 @@ curl -X PATCH https://fr-a89cac9a598c4d28bab5ed712e7978fe.ecs.us-east-1.on.aws/f
 **5. Agregar un producto a una sucursal**
 
 ```bash
-curl -X POST https://fr-a89cac9a598c4d28bab5ed712e7978fe.ecs.us-east-1.on.aws/franquicias/{franquiciaId}/sucursales/{sucursalId}/productos \
+curl -X POST http://18.232.53.87:8080/franquicias/{franquiciaId}/sucursales/{sucursalId}/productos \
   -H "Content-Type: application/json" \
   -d '{"nombre": "Coca-Cola 500ml", "cantidadStock": 100}'
 ```
@@ -121,7 +122,7 @@ curl -X POST https://fr-a89cac9a598c4d28bab5ed712e7978fe.ecs.us-east-1.on.aws/fr
 **6. Actualizar el nombre de un producto**
 
 ```bash
-curl -X PATCH https://fr-a89cac9a598c4d28bab5ed712e7978fe.ecs.us-east-1.on.aws/franquicias/{franquiciaId}/sucursales/{sucursalId}/productos/{productoId} \
+curl -X PATCH http://18.232.53.87:8080/franquicias/{franquiciaId}/sucursales/{sucursalId}/productos/{productoId} \
   -H "Content-Type: application/json" \
   -d '{"nombre": "Coca-Cola 600ml"}'
 ```
@@ -129,7 +130,7 @@ curl -X PATCH https://fr-a89cac9a598c4d28bab5ed712e7978fe.ecs.us-east-1.on.aws/f
 **7. Modificar el stock de un producto**
 
 ```bash
-curl -X PATCH https://fr-a89cac9a598c4d28bab5ed712e7978fe.ecs.us-east-1.on.aws/franquicias/{franquiciaId}/sucursales/{sucursalId}/productos/{productoId}/stock \
+curl -X PATCH http://18.232.53.87:8080/franquicias/{franquiciaId}/sucursales/{sucursalId}/productos/{productoId}/stock \
   -H "Content-Type: application/json" \
   -d '{"cantidadStock": 75}'
 ```
@@ -137,25 +138,25 @@ curl -X PATCH https://fr-a89cac9a598c4d28bab5ed712e7978fe.ecs.us-east-1.on.aws/f
 **8. Eliminar un producto de una sucursal**
 
 ```bash
-curl -X DELETE https://fr-a89cac9a598c4d28bab5ed712e7978fe.ecs.us-east-1.on.aws/franquicias/{franquiciaId}/sucursales/{sucursalId}/productos/{productoId}
+curl -X DELETE http://18.232.53.87:8080/franquicias/{franquiciaId}/sucursales/{sucursalId}/productos/{productoId}
 ```
 
 **9. Obtener el producto con más stock por sucursal**
 
 ```bash
-curl https://fr-a89cac9a598c4d28bab5ed712e7978fe.ecs.us-east-1.on.aws/franquicias/{franquiciaId}/productos/top-stock
+curl http://18.232.53.87:8080/franquicias/{franquiciaId}/productos/top-stock
 ```
 
 **Health check**
 
 ```bash
-curl https://fr-a89cac9a598c4d28bab5ed712e7978fe.ecs.us-east-1.on.aws/health
+curl http://18.232.53.87:8080/health
 ```
 
 ## Probar con Postman
 
 Importa la colección [postman/franquicias-api.postman_collection.json](postman/franquicias-api.postman_collection.json)
-en Postman. La variable `baseUrl` apunta por defecto al servicio desplegado en ECS Express Mode.
+en Postman. Configura la variable `baseUrl` con `http://18.232.53.87:8080` para acceder al servicio desplegado en ECS Fargate.
 Para probar localmente, cambia su valor a `http://localhost:8080`.
 
 La colección guarda automáticamente `franquiciaId`, `sucursalId` y `productoId` a partir de las respuestas,
@@ -255,7 +256,7 @@ de creación de franquicias. Los tests no levantan el contexto de Spring ni acce
 
 ## Cómo desplegar en AWS
 
-La infraestructura completa se gestiona con Terraform, ubicada en `infra/terraform/`. Aprovisiona: una tabla DynamoDB, un repositorio ECR, los roles IAM necesarios, y un servicio de Amazon ECS Express Mode.
+La infraestructura completa se gestiona con Terraform, ubicada en `infra/terraform/`. Aprovisiona: una tabla DynamoDB, un repositorio ECR, los roles IAM necesarios, y un servicio de Amazon ECS Fargate sin balanceador de carga.
 
 ### Prerrequisitos
 
@@ -270,7 +271,7 @@ La infraestructura completa se gestiona con Terraform, ubicada en `infra/terrafo
    ```bash
    cd infra/terraform
    terraform init
-   terraform apply -target=aws_ecr_repository.app -target=aws_dynamodb_table.franquicias -target=aws_iam_role.execution_role -target=aws_iam_role.infrastructure_role -target=aws_iam_role.task_role -target=aws_iam_policy.dynamodb_access -target=aws_iam_role_policy_attachment.execution_role -target=aws_iam_role_policy_attachment.infrastructure_role -target=aws_iam_role_policy_attachment.task_role_dynamodb_access
+   terraform apply -target=aws_ecr_repository.app -target=aws_dynamodb_table.franquicias -target=aws_iam_role.execution_role -target=aws_iam_role.task_role -target=aws_iam_policy.dynamodb_access -target=aws_iam_role_policy_attachment.execution_role -target=aws_iam_role_policy_attachment.task_role_dynamodb_access
    ```
 
 2. Construye la imagen Docker y súbela al repositorio ECR recién creado:
@@ -286,33 +287,27 @@ La infraestructura completa se gestiona con Terraform, ubicada en `infra/terrafo
    docker push $ECR_URL:latest
    ```
 
-3. Despliega el servicio ECS Express Mode con la imagen ya disponible:
+3. Despliega el servicio ECS Fargate con la imagen ya disponible:
 
    ```bash
    cd infra/terraform
    terraform apply
    ```
 
-4. Obtén la URL pública del servicio:
-
-   ```bash
-   terraform output -json ecs_express_service_url
-   ```
-
-   `ingress_paths` puede contener más de una ruta. Selecciona la URL HTTPS pública devuelta por Terraform.
+4. Obtén la IP pública de la tarea mediante un script aparte. Terraform no expone esta IP mediante un output.
 
 5. Verifica el despliegue:
    ```bash
-   curl https://<host-publico>/health
+   curl http://18.232.53.87:8080/health
    ```
 
-### Destruir y reconstruir ECS Express Mode
+### Destruir y reconstruir ECS Fargate
 
-Para eliminar únicamente el servicio ECS Express Mode y el security group de la aplicación:
+Para eliminar únicamente el servicio Fargate, el cluster, la definición de tarea, el grupo de logs y el security group:
 
 ```bash
 cd infra/terraform
-terraform destroy -target=aws_ecs_express_gateway_service.app -target=aws_security_group.app
+terraform destroy -target=aws_ecs_service.app -target=aws_ecs_cluster.app -target=aws_ecs_task_definition.app -target=aws_cloudwatch_log_group.app -target=aws_security_group.app
 ```
 
 Para volver a construirlos cuando sea necesario, ejecuta nuevamente `terraform apply` desde el mismo directorio:
@@ -333,5 +328,5 @@ terraform destroy
 
 - **Agregado único en DynamoDB**: cada franquicia (con sus sucursales y productos anidados) se persiste como un solo ítem, priorizando consistencia y simplicidad sobre el volumen de datos que maneja este reto. Esto implica que operaciones concurrentes sobre la misma franquicia podrían sobrescribirse entre sí (patrón _read-modify-write_); en un escenario de producción con alta concurrencia, se resolvería con _optimistic locking_ mediante un atributo de versión.
 - **Router Functions en vez de `@RestController`**: se optó por el estilo funcional de WebFlux, coherente con el punto extra de programación funcional/reactiva del reto.
-- **Amazon ECS Express Mode en vez de App Runner**: AWS App Runner dejó de aceptar clientes nuevos a partir del 30 de abril de 2026. ECS Express Mode es la alternativa recomendada oficialmente por AWS, ofreciendo una experiencia de despliegue igualmente simple.
+- **Amazon ECS Fargate sin balanceador**: para este proyecto de prueba técnica con tráfico bajo, se usa ECS Fargate con una IP pública directa para minimizar costos de infraestructura.
 - **Dominio rico con validación en el constructor**: los objetos de dominio (`Franquicia`, `Sucursal`, `Producto`) no pueden construirse en un estado inválido — las reglas de negocio (nombres no vacíos, stock no negativo) se aplican en el constructor y en métodos explícitos como `actualizarStock(...)`.
