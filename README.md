@@ -71,6 +71,7 @@ Base URL AWS: `http://18.232.53.87:8080`
 | POST   | `/franquicias/{franquiciaId}/sucursales/{sucursalId}/productos`                    | Agregar producto a una sucursal                           |
 | PATCH  | `/franquicias/{franquiciaId}/sucursales/{sucursalId}/productos/{productoId}`       | Actualizar nombre de un producto                          |
 | PATCH  | `/franquicias/{franquiciaId}/sucursales/{sucursalId}/productos/{productoId}/stock` | Modificar el stock de un producto                         |
+| DELETE | `/franquicias/{franquiciaId}/sucursales/{sucursalId}/productos/{productoId}`       | Eliminar un producto de una sucursal                      |
 | GET    | `/franquicias/{franquiciaId}/productos/top-stock`                                  | Producto con más stock por cada sucursal de la franquicia |
 
 ### Ejemplos de uso (curl)
